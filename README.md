@@ -277,6 +277,9 @@ Markas pusat meminta dibuatnya domain khusus untuk menaruh informasi persenjataa
    ```bash
    service bind9 restart
    ```
+### Soal 5
+Pastikan semua client dapat mengakses ke domain-domain tersebut
+![image](https://github.com/user-attachments/assets/57304f2b-6e86-41e6-b2e8-d26c84e9ed50)
 
 
 
