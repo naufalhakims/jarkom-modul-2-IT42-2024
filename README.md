@@ -330,3 +330,105 @@ Beberapa daerah memiliki keterbatasan yang menyebabkan hanya dapat mengakses dom
 
 ---
 
+
+### Soal 7
+Akhir-akhir ini seringkali terjadi serangan brainrot ke DNS Server Utama, sebagai tindakan antisipasi kamu diperintahkan untuk membuat DNS Slave di Majapahit untuk semua domain yang sudah dibuat sebelumnya yang mengarah ke Sriwijaya.
+
+1. Buka file konfigurasi BIND di Majapahit:
+   ```bash
+   nano /etc/bind/named.conf.local
+   ```
+
+2. Tambahkan konfigurasi untuk setiap domain yang ada di DNS Master (Sriwijaya):
+   - **Domain sudarsana.it42.com**:
+     ```bash
+     zone "sudarsana.it42.com" {
+         type slave;
+         masters { 10.84.2.3; };  # IP Sriwijaya (DNS Master)
+         file "/var/cache/bind/sudarsana.it42.com";
+     };
+     ```
+
+   - **Domain pasopati.it42.com**:
+     ```bash
+     zone "pasopati.it42.com" {
+         type slave;
+         masters { 10.84.2.3; };  # IP Sriwijaya (DNS Master)
+         file "/var/cache/bind/pasopati.it42.com";
+     };
+     ```
+
+   - **Domain rujapala.it42.com**:
+     ```bash
+     zone "rujapala.it42.com" {
+         type slave;
+         masters { 10.84.2.3; };  # IP Sriwijaya (DNS Master)
+         file "/var/cache/bind/rujapala.it42.com";
+     };
+     ```
+
+Pada konfigurasi ini, **type slave** menunjukkan bahwa Majapahit bertindak sebagai DNS Slave, dan **masters { 10.84.2.3; }** mengidentifikasi **Sriwijaya** (DNS Master) yang memegang zona master dari domain tersebut. Setiap zona disimpan di **/var/cache/bind/** pada Majapahit,selanjutnya DNS Master (Sriwijaya) perlu mengizinkan DNS Slave (Majapahit) untuk menyalin zona dari server. Hal ini dilakukan dengan mengatur transfer zona di **Sriwijaya**.
+
+1. Buka file **named.conf.local** di Sriwijaya:
+   ```bash
+   nano /etc/bind/named.conf.local
+   ```
+
+2. Tambahkan pengaturan transfer zona untuk setiap domain, yang mengizinkan transfer ke IP **Majapahit** (10.84.1.2):
+   - **Untuk sudarsana.it42.com**:
+     ```bash
+     zone "sudarsana.it42.com" {
+         type master;
+         file "/etc/bind/it42/sudarsana.it42.com";
+         allow-transfer { 10.84.1.2; };  # Majapahit (DNS Slave)
+     };
+     ```
+
+   - **Untuk pasopati.it42.com**:
+     ```bash
+     zone "pasopati.it42.com" {
+         type master;
+         file "/etc/bind/it42/pasopati.it42.com";
+         allow-transfer { 10.84.1.2; };  # Majapahit (DNS Slave)
+     };
+     ```
+
+   - **Untuk rujapala.it42.com**:
+     ```bash
+     zone "rujapala.it42.com" {
+         type master;
+         file "/etc/bind/it42/rujapala.it42.com";
+         allow-transfer { 10.84.1.2; };  # Majapahit (DNS Slave)
+     };
+     ```
+
+Konfigurasi ini memungkinkan **Majapahit** untuk menyalin zona secara otomatis dari **Sriwijaya** ketika terjadi perubahan atau pembaruan di zona tersebut,
+Setelah melakukan perubahan pada konfigurasi DNS di Majapahit dan Sriwijaya, langkah selanjutnya adalah me-restart layanan **bind9** pada kedua server untuk menerapkan perubahan.
+
+- **Di Majapahit (DNS Slave)**:
+  ```bash
+  service bind9 restart
+  ```
+
+- **Di Sriwijaya (DNS Master)**:
+  ```bash
+  service bind9 restart
+  ```
+
+
+Setelah konfigurasi dan restart, perlu dilakukan verifikasi apakah DNS Slave di Majapahit sudah berhasil mereplikasi zona dari DNS Master (Sriwijaya). Langkah verifikasi dilakukan dengan memeriksa cache BIND di Majapahit untuk memastikan file zona tersedia:
+
+1. Periksa direktori **/var/cache/bind** di Majapahit:
+   ```bash
+   ls /var/cache/bind/
+   ```
+
+2. Pastikan terdapat file zona yang sesuai, seperti:
+   - `sudarsana.it42.com`
+   - `pasopati.it42.com`
+   - `rujapala.it42.com`
+
+Jika file-file ini ada, artinya replikasi zona berhasil.
+
+---
+
