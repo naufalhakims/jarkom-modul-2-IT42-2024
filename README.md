@@ -283,3 +283,50 @@ Pastikan semua client dapat mengakses ke domain-domain tersebut
 
 
 
+### soal 6
+Beberapa daerah memiliki keterbatasan yang menyebabkan hanya dapat mengakses domain secara langsung melalui alamat IP domain tersebut. Karena daerah tersebut tidak diketahui secara spesifik, pastikan semua komputer (client) dapat mengakses domain pasopati.xxxx.com melalui alamat IP Kotalingga (Notes: menggunakan pointer record).
+
+
+1. **Menambahkan Zona Reverse DNS di DNS Master (Sriwijaya)**  
+   Untuk memastikan bahwa alamat IP dapat diterjemahkan kembali menjadi nama domain, pertama-tama dibuat zona reverse DNS. Zona reverse ini memungkinkan perangkat dalam jaringan untuk melakukan query terbalik dari IP ke nama host.
+
+   Konfigurasi dilakukan dengan menambahkan zona berikut pada file **named.conf.local** di DNS Master (Sriwijaya):
+   ```bash
+   zone "1.84.10.in-addr.arpa" {
+       type master;
+       file "/etc/bind/it42/1.84.10.in-addr.arpa";
+   };
+   ```
+
+2. **Membuat File Zona PTR**  
+   Setelah menambahkan zona reverse, dibuat file konfigurasi PTR yang memetakan IP **10.84.1.4** ke domain **pasopati.it42.com**. Konfigurasi PTR ini diisi sebagai berikut:
+   ```bash
+   $TTL    604800
+   @       IN      SOA     pasopati.it42.com. root.pasopati.it42.com. (
+                              2         ; Serial
+                         604800         ; Refresh
+                          86400         ; Retry
+                        2419200         ; Expire
+                         604800 )       ; Negative Cache TTL
+   ;
+   @       IN      NS      pasopati.it42.com.
+   4       IN      PTR     pasopati.it42.com.
+   ```
+
+   Pada konfigurasi ini, angka **4** pada record PTR mengacu pada oktet terakhir dari IP **10.84.1.4**, yang kemudian dipetakan ke domain **pasopati.it42.com**.
+
+3. **Restart Layanan BIND**  
+   Untuk menerapkan perubahan yang dilakukan, layanan **bind9** direstart dengan perintah:
+   ```bash
+   service bind9 restart
+   ```
+
+4. **Pengujian Reverse DNS**  
+   Setelah konfigurasi PTR selesai, dilakukan pengujian untuk memastikan bahwa reverse DNS lookup berfungsi. Pengujian dilakukan menggunakan perintah **dig** sebagai berikut:
+   ```bash
+   dig -x 10.84.1.4
+   ```
+   Hasil yang diharapkan adalah resolusi IP **10.84.1.4** menjadi domain **pasopati.it42.com**.
+
+---
+
