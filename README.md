@@ -327,8 +327,7 @@ Beberapa daerah memiliki keterbatasan yang menyebabkan hanya dapat mengakses dom
    dig -x 10.84.1.4
    ```
    Hasil yang diharapkan adalah resolusi IP **10.84.1.4** menjadi domain **pasopati.it42.com**.
-
----
+![image](https://github.com/user-attachments/assets/e3ac926c-7f3b-4776-878e-44ff9b14c1fe)
 
 
 ### Soal 7
@@ -464,7 +463,9 @@ cakra	IN      A       10.84.2.5     ; IP Bedahulu' > /etc/bind/jarkom/sudarsana.
 
 service bind9 restart
 ```
+![image](https://github.com/user-attachments/assets/5d8f8b5a-85b0-42f8-9a08-322ad7c6694b)
 
+---
 ## No 9
 Karena terjadi serangan DDOS oleh shikanoko nokonoko koshitantan (NUN), sehingga sistem komunikasinya terhalang. Untuk melindungi warga, kita diperlukan untuk membuat sistem peringatan dari siren man oleh Frekuensi Freak dan memasukkannya ke subdomain panah.pasopati.xxxx.com dalam folder panah dan pastikan dapat diakses secara mudah dengan menambahkan alias www.panah.pasopati.xxxx.com dan mendelegasikan subdomain tersebut ke Majapahit dengan alamat IP menuju radar di Kotalingga.
 
@@ -569,6 +570,8 @@ service bind9 restart
 
 ### Uji Koneksi
 Ping `panah.pasopati.it42.com` untuk memastikan konfigurasi berhasil.
+![image](https://github.com/user-attachments/assets/fa561898-2874-4ab4-b8fd-b7d412d7fc1f)
+
 
 ## No 10
 Markas juga meminta catatan kapan saja meme brain rot akan dijatuhkan, maka buatlah subdomain baru di subdomain panah yaitu log.panah.pasopati.xxxx.com serta aliasnya www.log.panah.pasopati.xxxx.com yang juga mengarah ke Kotalingga.
@@ -591,8 +594,6 @@ $TTL    604800
 @       IN      A       10.84.1.4     ; IP Kotalingga
 www     IN      CNAME   panah.pasopati.it42.com.
 ```
-
-Berikut adalah penulisan ulang yang rapi dalam bahasa Indonesia untuk script dan instruksi Anda. Silakan salin dan tempel ke dalam file README.md di GitHub Anda.
 
 ---
 
@@ -618,6 +619,7 @@ options {
 
 ### Pengujian
 Setelah konfigurasi selesai, coba ping ke `google.com` di client untuk memastikan akses berhasil.
+![image](https://github.com/user-attachments/assets/404732ff-5f99-48d3-8320-10315ede7624)
 
 ---
 
@@ -666,6 +668,7 @@ Uji akses laman web dengan perintah:
 ```bash
 lynx 10.84.1.4
 ```
+![image](https://github.com/user-attachments/assets/e642606c-93b7-4da5-9d58-7018816cd319)
 
 ---
 
@@ -727,10 +730,10 @@ Uji akses ke web server dengan perintah:
 ```bash
 lynx 10.84.1.4
 ```
+![image](https://github.com/user-attachments/assets/69dd7f2d-4c48-487f-bdcf-4f4678adf2c6)
+![image](https://github.com/user-attachments/assets/348cc0c4-9337-4301-9fcc-10236f76744a)
+![image](https://github.com/user-attachments/assets/cb4a0f16-cf93-4183-9e8f-f985e10e2d4e)
 
----
-
-Dengan langkah-langkah di atas, jaringan dan layanan web diatur untuk mendukung warga IT dan memantau kondisi kota. Pastikan untuk memeriksa setiap langkah dengan teliti dan sesuaikan alamat IP sesuai kebutuhan Anda. Jika ada pertanyaan lebih lanjut, silakan tanyakan!
 
 
 
