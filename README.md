@@ -432,3 +432,166 @@ Jika file-file ini ada, artinya replikasi zona berhasil.
 
 ---
 
+## No 8
+Kamu juga diperintahkan untuk membuat subdomain khusus melacak kekuatan tersembunyi di Ohio dengan subdomain cakra.sudarsana.xxxx.com yang mengarah ke Bedahulu.
+### Script Konfigurasi
+```bash
+#!/bin/bash
+echo 'zone "sudarsana.it42.com" {
+    type master;
+    notify yes;
+    file "/etc/bind/jarkom/sudarsana.it42.com";
+};' > /etc/bind/named.conf.local
+
+cp /etc/bind/db.local /etc/bind/jarkom/sudarsana.it42.com
+
+echo '
+;
+; BIND data file for local loopback interface
+;
+$TTL    604800
+@       IN      SOA     sudarsana.it42.com. root.sudarsana.it42.com. (
+                        2024100201      ; Serial
+                        604800         ; Refresh
+                        86400         ; Retry
+                        2419200         ; Expire
+                        604800 )       ; Negative Cache TTL
+;
+@       IN      NS      sudarsana.it42.com.
+@       IN      A       10.84.3.1     ; IP Solok
+www     IN      CNAME   sudarsana.it42.com.
+cakra	IN      A       10.84.2.5     ; IP Bedahulu' > /etc/bind/jarkom/sudarsana.it42.com
+
+service bind9 restart
+```
+
+## No 9
+Karena terjadi serangan DDOS oleh shikanoko nokonoko koshitantan (NUN), sehingga sistem komunikasinya terhalang. Untuk melindungi warga, kita diperlukan untuk membuat sistem peringatan dari siren man oleh Frekuensi Freak dan memasukkannya ke subdomain panah.pasopati.xxxx.com dalam folder panah dan pastikan dapat diakses secara mudah dengan menambahkan alias www.panah.pasopati.xxxx.com dan mendelegasikan subdomain tersebut ke Majapahit dengan alamat IP menuju radar di Kotalingga.
+
+### Script Konfigurasi
+```bash
+echo '
+;
+; BIND data file for local loopback interface
+;
+$TTL    604800
+@       IN      SOA     pasopati.it42.com. root.pasopati.it42.com. (
+                        2024100201      ; Serial
+                        604800         ; Refresh
+                        86400         ; Retry
+                        2419200         ; Expire
+                        604800 )       ; Negative Cache TTL
+;
+@       IN      NS      pasopati.it42.com.
+@       IN      A       10.84.1.4     ; IP Kotalingga
+www     IN      CNAME   pasopati.it42.com.
+ns1		IN		A		10.84.1.2		; delegasi IP Majapahit
+panah	IN		NS		ns1				; subdomain IP delegasi' > /etc/bind/jarkom/pasopati.it42.com
+
+service bind9 restart
+```
+
+## Script Konfigurasi Domain Panah
+
+### Script Konfigurasi
+```bash
+echo 'zone "panah.pasopati.it42.com" {
+    type master;
+    notify yes;
+    file "/etc/bind/panah/panah.pasopati.it42.com";
+};' >> /etc/bind/named.conf.local
+
+mkdir /etc/bind/panah
+cp /etc/bind/db.local /etc/bind/panah/panah.pasopati.it42.com
+
+echo '
+;
+; BIND data file for local loopback interface
+;
+$TTL    604800
+@       IN      SOA     panah.pasopati.it42.com. root.panah.pasopati.it42.com. (
+                        2024100201      ; Serial
+                        604800         ; Refresh
+                        86400         ; Retry
+                        2419200         ; Expire
+                        604800 )       ; Negative Cache TTL
+;
+@       IN      NS      panah.pasopati.it42.com.
+@       IN      A       10.84.1.4     ; IP Kotalingga
+www     IN      CNAME   panah.pasopati.it42.com.' > /etc/bind/panah/panah.pasopati.it42.com
+
+service bind9 restart
+```
+
+## Modifikasi Konfigurasi BIND di Master dan Slave
+
+### Konfigurasi `named.conf.options`
+```bash
+echo '
+options {
+	directory "/var/cache/bind";
+	allow-query { any; };
+	auth-nxdomain no; #conform to RFC1035
+	listen-on-v6 { any; };
+};' > /etc/bind/named.conf.options
+```
+
+### Modifikasi `named.conf.local` untuk Slave
+```bash
+zone "sudarsana.it42.com" {
+    type slave;
+    masters { 10.84.1.2; };
+    file "/var/lib/bind/sudarsana.it42.com";
+};
+
+zone "pasopati.it42.com" {
+    type slave;
+    masters { 10.84.1.2; };
+    file "/var/lib/bind/pasopati.it42.com";
+};
+
+zone "rujapala.it42.com" {
+    type slave;
+    masters { 10.84.1.2; };
+    file "/var/lib/bind/rujapala.it42.com";
+};
+
+zone "panah.pasopati.it42.com" {
+    type master;
+    file "/etc/bind/panah/panah.pasopati.it42.com";
+};
+```
+
+### Restart Layanan BIND
+```bash
+service bind9 restart
+```
+
+### Uji Koneksi
+Ping `panah.pasopati.it42.com` untuk memastikan konfigurasi berhasil.
+
+## No 10
+Markas juga meminta catatan kapan saja meme brain rot akan dijatuhkan, maka buatlah subdomain baru di subdomain panah yaitu log.panah.pasopati.xxxx.com serta aliasnya www.log.panah.pasopati.xxxx.com yang juga mengarah ke Kotalingga.
+Ubah file `/etc/bind/panah/pasopati.it42.com` menjadi seperti berikut:
+```bash
+;
+; BIND data file for local loopback interface
+;
+$TTL    604800
+@       IN      SOA     panah.pasopati.it42.com. root.panah.pasopati.it42.com. (
+                              2         ; Serial
+                         604800         ; Refresh
+                          864
+
+00         ; Retry
+                       2419200         ; Expire
+                          604800 )       ; Negative Cache TTL
+;
+@       IN      NS      panah.pasopati.it42.com.
+@       IN      A       10.84.1.4     ; IP Kotalingga
+www     IN      CNAME   panah.pasopati.it42.com.
+```
+
+
+
+
