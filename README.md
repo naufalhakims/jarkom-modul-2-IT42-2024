@@ -592,6 +592,146 @@ $TTL    604800
 www     IN      CNAME   panah.pasopati.it42.com.
 ```
 
+Berikut adalah penulisan ulang yang rapi dalam bahasa Indonesia untuk script dan instruksi Anda. Silakan salin dan tempel ke dalam file README.md di GitHub Anda.
+
+---
+
+## No 11: Konfigurasi DNS Server Majapahit
+
+Setelah pertempuran mereda, warga IT dapat kembali mengakses jaringan luar dan menikmati meme brainrot terbaru. Namun, hanya warga Majapahit yang dapat mengakses jaringan luar secara langsung. Berikut adalah konfigurasi agar warga IT yang berada di luar Majapahit dapat mengakses jaringan luar melalui DNS Server Majapahit.
+
+### Script untuk Majapahit
+```bash
+echo '
+options {
+    directory "/var/cache/bind";
+
+    forwarders {
+        192.168.122.1;
+    };
+
+    allow-query { any; };
+    auth-nxdomain no; # conform to RFC1035
+    listen-on-v6 { any; };
+};' > /etc/bind/named.conf.options
+```
+
+### Pengujian
+Setelah konfigurasi selesai, coba ping ke `google.com` di client untuk memastikan akses berhasil.
+
+---
+
+## No 12: Deploy Laman Web di Kotalingga
+
+Pusat ingin sebuah laman web yang digunakan untuk memantau kondisi kota lainnya. Berikut adalah langkah-langkah untuk mendepoy laman web di Kotalingga menggunakan Apache.
+
+### Script untuk Kotalingga
+```bash
+echo nameserver 10.84.2.3 > /etc/resolv.conf # Master
+echo nameserver 10.84.1.2 >> /etc/resolv.conf # Slave
+
+apt update
+apt install apache2 libapache2-mod-php7.0 php wget unzip -y
+
+cp /etc/apache2/sites-available/000-default.conf /etc/apache2/sites-available/pasopati.it42.com.conf
+
+echo '
+<VirtualHost *:80>
+    ServerAdmin webmaster@localhost
+    DocumentRoot /var/www/html
+    ServerName pasopati.it42.com
+    ServerAlias www.pasopati.it42.com
+</VirtualHost>
+' > /etc/apache2/sites-available/pasopati.it42.com.conf
+
+service apache2 start
+a2ensite pasopati.it42.com.conf
+
+wget --no-check-certificate 'https://docs.google.com/uc?export=download&id=1Sqf0TIiybYyUp5nyab4twy9svkgq8bi7' -O lb.zip
+
+unzip -o lb.zip -d lb
+rm /var/www/html/index.html
+cp lb/worker/index.php /var/www/html/index.php
+
+service apache2 restart
+```
+
+### Pengujian di Client
+Instal Lynx di client:
+```bash
+apt install lynx -y
+```
+
+Uji akses laman web dengan perintah:
+```bash
+lynx 10.84.1.4
+```
+
+---
+
+## No 13: Konfigurasi Load Balancer di Solok
+
+Karena Sriwijaya dan Majapahit memenangkan pertempuran ini dan memiliki banyak uang dari hasil penjarahan, pusat meminta kita memasang load balancer untuk membagikan uangnya pada web yang dikelola oleh Kotalingga, Bedahulu, dan Tanjungkulai sebagai worker, dan Solok sebagai Load Balancer menggunakan Apache.
+
+### Script untuk Load Balancer Solok
+```bash
+echo nameserver 192.168.122.1 > /etc/resolv.conf
+
+apt-get update && apt-get install apache2 -y
+
+# Aktifkan modul yang diperlukan
+a2enmod proxy
+a2enmod proxy_balancer
+a2enmod proxy_http
+a2enmod lbmethod_byrequests
+
+# Tambahkan konfigurasi virtual host
+echo '
+<VirtualHost *:80>
+    <Proxy balancer://mycluster>
+        BalancerMember http://10.84.1.4
+        BalancerMember http://10.84.2.4
+        BalancerMember http://10.84.2.5
+        ProxySet lbmethod=byrequests
+    </Proxy>
+
+    ProxyPass / balancer://mycluster/
+    ProxyPassReverse / balancer://mycluster/
+
+</VirtualHost>
+' > /etc/apache2/sites-available/000-default.conf
+
+service apache2 restart
+```
+
+### Script untuk Setiap Web Server
+Setiap web server (Kotalingga, Bedahulu, Tanjungkulai) perlu melakukan langkah-langkah berikut:
+```bash
+echo nameserver 10.84.2.3 > /etc/resolv.conf # Master
+echo nameserver 10.84.1.2 >> /etc/resolv.conf # Slave
+
+apt update
+apt install apache2 libapache2-mod-php7.0 php wget unzip -y
+
+wget --no-check-certificate 'https://docs.google.com/uc?export=download&id=1Sqf0TIiybYyUp5nyab4twy9svkgq8bi7' -O lb.zip
+
+unzip -o lb.zip -d lb
+rm /var/www/html/index.html
+cp lb/worker/index.php /var/www/html/index.php
+
+service apache2 restart
+```
+
+### Pengujian dengan Client
+Uji akses ke web server dengan perintah:
+```bash
+lynx 10.84.1.4
+```
+
+---
+
+Dengan langkah-langkah di atas, jaringan dan layanan web diatur untuk mendukung warga IT dan memantau kondisi kota. Pastikan untuk memeriksa setiap langkah dengan teliti dan sesuaikan alamat IP sesuai kebutuhan Anda. Jika ada pertanyaan lebih lanjut, silakan tanyakan!
+
 
 
 
