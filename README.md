@@ -1300,3 +1300,75 @@ Karena probset sudah kehabisan ide masuk ke salah satu worker buatkan akses dire
 
    Jika konfigurasi berhasil, kita akan melihat daftar file dan direktori yang ada di direktori **/resources/** pada **Worker2**.
 
+
+
+### Soal 20
+Worker tersebut harus dapat di akses dengan sekiantterimakasih.xxxx.com dengan alias www.sekiantterimakasih.xxxx.com.
+
+
+1. **Konfigurasi DNS untuk Domain dan Alias**
+
+   Pada server DNS, tambahkan entri berikut untuk domain **sekiantterimakasih.xxxx.com** dan alias **www.sekiantterimakasih.xxxx.com**. Misalkan IP dari **Worker** tersebut adalah **10.84.3.10**.
+
+   ```bash
+   ; BIND data file for sekiantterimakasih.xxxx.com
+   $TTL    604800
+   @       IN      SOA     ns1.xxxx.com. root.xxxx.com. (
+                             2024100501         ; Serial
+                             604800             ; Refresh
+                             86400              ; Retry
+                             2419200            ; Expire
+                             604800 )           ; Negative Cache TTL
+   ;
+   @       IN      NS      ns1.xxxx.com.
+   @       IN      A       10.84.3.10  ; IP Address of Worker
+   www     IN      CNAME   sekiantterimakasih.xxxx.com.
+   ```
+
+   Penjelasan:
+   - **@ IN A 10.84.3.10**: Mengarahkan domain **sekiantterimakasih.xxxx.com** ke IP **10.84.3.10**.
+   - **www IN CNAME sekiantterimakasih.xxxx.com**: Membuat alias **www.sekiantterimakasih.xxxx.com** yang mengarah ke domain utama **sekiantterimakasih.xxxx.com**.
+
+2. **Konfigurasi Nginx di Worker**
+
+   Setelah DNS sudah diarahkan ke **Worker**, langkah berikutnya adalah menambahkan konfigurasi server block di Nginx pada **Worker** tersebut. Kita perlu memastikan bahwa Nginx siap menerima permintaan untuk **sekiantterimakasih.xxxx.com** dan **www.sekiantterimakasih.xxxx.com**.
+
+   Buat atau modifikasi file konfigurasi **Nginx** di **Worker**, misalnya di **/etc/nginx/sites-available/sekiantterimakasih**:
+
+   ```bash
+   server {
+       listen 80;
+       server_name sekiantterimakasih.xxxx.com www.sekiantterimakasih.xxxx.com;
+
+       location / {
+           root /var/www/html;
+           index index.php index.html index.htm;
+       }
+   }
+   ```
+
+   Penjelasan konfigurasi:
+   - **server_name sekiantterimakasih.xxxx.com www.sekiantterimakasih.xxxx.com**: Nginx akan menangani permintaan untuk kedua nama domain ini.
+   - **root /var/www/html**: Mengarahkan akses ke direktori root yang berisi halaman utama dari **Worker**.
+
+3. **Aktifkan Konfigurasi Nginx**
+
+   Setelah menambahkan konfigurasi server block, aktifkan file konfigurasi tersebut dan restart Nginx:
+
+   ```bash
+   ln -s /etc/nginx/sites-available/sekiantterimakasih /etc/nginx/sites-enabled/
+   service nginx restart
+   ```
+
+4. **Uji Akses Domain dan Alias**
+
+   Setelah konfigurasi DNS dan Nginx selesai, lakukan pengujian untuk memastikan domain **sekiantterimakasih.xxxx.com** dan alias **www.sekiantterimakasih.xxxx.com** dapat diakses dengan baik. Pengujian bisa dilakukan dengan browser atau perintah **curl**:
+
+   ```bash
+   curl http://sekiantterimakasih.xxxx.com
+   curl http://www.sekiantterimakasih.xxxx.com
+   ```
+
+   Jika konfigurasi berhasil, kita akan melihat halaman yang disajikan oleh **Worker** tersebut.
+
+
