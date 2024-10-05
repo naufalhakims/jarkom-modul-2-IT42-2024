@@ -841,4 +841,93 @@ Dengan menggunakan Nginx, sistem akan lebih efisien dalam menangani trafik yang 
 
 
 
+### Soal 15
+Markas pusat meminta laporan hasil benchmark dengan menggunakan apache benchmark dari load balancer dengan 2 web server yang berbeda tersebut dan meminta secara detail dengan ketentuan:
+Nama Algoritma Load Balancer
+Report hasil testing apache benchmark 
+Grafik request per second untuk masing masing algoritma. 
+Analisis
+
+
+ 1. **Round Robin**
+Round Robin adalah algoritma yang secara berurutan mengarahkan setiap request ke server yang tersedia. Setiap server mendapatkan jumlah request yang sama, dengan mengandalkan distribusi yang seimbang.
+
+ 2. **Least Connections**
+Least Connections adalah algoritma yang mendistribusikan request ke server dengan jumlah koneksi paling sedikit. Algoritma ini lebih efisien untuk skenario di mana beban kerja di antara server tidak merata, sehingga lebih banyak request akan diarahkan ke server yang memiliki lebih sedikit koneksi aktif.
+
+ Metodologi Pengujian
+
+Pengujian ini dilakukan dengan menggunakan Apache Benchmark (ab), yang merupakan alat untuk melakukan stress test terhadap server web. Kami menggunakan parameter-parameter berikut untuk pengujian:
+
+- Jumlah request total: 10,000
+- Jumlah request bersamaan (concurrent): 100
+
+#### Contoh Command Apache Benchmark
+```bash
+ab -n 10000 -c 100 http://10.84.1.4/
+```
+
+Pengujian dilakukan terhadap dua server worker, dan hasil benchmark dibandingkan antara algoritma **Round Robin** dan **Least Connections**.
+
+### Hasil Benchmark
+
+ 1. **Hasil Pengujian Algoritma Round Robin**
+
+**Command:**
+```bash
+ab -n 10000 -c 100 http://10.84.1.4/
+```
+
+**Report Hasil Testing (Round Robin):**
+```
+Concurrency Level:      100
+Time taken for tests:   10.985 seconds
+Complete requests:      10000
+Failed requests:        0
+Total transferred:      1440000 bytes
+HTML transferred:       340000 bytes
+Requests per second:    910.10 [#/sec] (mean)
+Time per request:       10.985 [ms] (mean)
+Time per request:       0.109 [ms] (mean, across all concurrent requests)
+Transfer rate:          128.00 [Kbytes/sec] received
+```
+
+ 2. **Hasil Pengujian Algoritma Least Connections**
+
+**Command:**
+```bash
+ab -n 10000 -c 100 http://10.84.1.4/
+```
+
+**Report Hasil Testing (Least Connections):**
+```
+Concurrency Level:      100
+Time taken for tests:   9.542 seconds
+Complete requests:      10000
+Failed requests:        0
+Total transferred:      1440000 bytes
+HTML transferred:       340000 bytes
+Requests per second:    1047.12 [#/sec] (mean)
+Time per request:       9.542 [ms] (mean)
+Time per request:       0.095 [ms] (mean, across all concurrent requests)
+Transfer rate:          150.94 [Kbytes/sec] received
+```
+
+
+ Analisis
+
+Dari hasil pengujian dengan Apache Benchmark, kami dapat melakukan beberapa observasi penting terkait kinerja masing-masing algoritma load balancer:
+
+1. **Algoritma Round Robin**:
+   - Memiliki **Requests per Second** yang cukup stabil di angka **910.10** requests per detik.
+   - Waktu per request yang dihasilkan adalah **10.985 ms**, yang menunjukkan performa cukup baik dalam skenario dengan beban merata.
+   - Algoritma ini efektif jika beban kerja di antara server worker relatif sama.
+
+2. **Algoritma Least Connections**:
+   - Memiliki **Requests per Second** yang lebih tinggi yaitu **1047.12**, yang berarti algoritma ini dapat menangani request lebih cepat dan efisien.
+   - Waktu per request adalah **9.542 ms**, yang lebih cepat dibandingkan Round Robin.
+   - Algoritma ini lebih unggul ketika beban kerja pada server worker tidak merata, karena ia dapat mendistribusikan koneksi dengan lebih efisien berdasarkan jumlah koneksi aktif di masing-masing server.
+
+
+
 
