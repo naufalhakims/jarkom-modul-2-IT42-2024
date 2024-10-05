@@ -929,5 +929,118 @@ Dari hasil pengujian dengan Apache Benchmark, kami dapat melakukan beberapa obse
    - Algoritma ini lebih unggul ketika beban kerja pada server worker tidak merata, karena ia dapat mendistribusikan koneksi dengan lebih efisien berdasarkan jumlah koneksi aktif di masing-masing server.
 
 
+### Soal 16
+Karena dirasa kurang aman dari brainrot karena masih memakai IP, markas ingin akses ke Solok memakai solok.xxxx.com dengan alias www.solok.xxxx.com (sesuai web server terbaik hasil analisis kalian).
+
+
+ Konfigurasi DNS
+
+1. **Menambahkan Konfigurasi untuk Domain Solok**
+   Domain utama yang akan digunakan adalah **solok.xxxx.com** dan aliasnya adalah **www.solok.xxxx.com**. Konfigurasi DNS dilakukan dengan menambahkan catatan DNS di server yang mengelola domain utama (contohnya Bind9) dan mengarahkan ke IP server Nginx di Solok.
+
+   **Script Konfigurasi:**
+   ```bash
+   echo '
+   ;
+   ; BIND data file for solok.xxxx.com
+   ;
+   $TTL    604800
+   @       IN      SOA     solok.xxxx.com. root.solok.xxxx.com. (
+                           2024100501      ; Serial
+                           604800          ; Refresh
+                           86400           ; Retry
+                           2419200         ; Expire
+                           604800 )        ; Negative Cache TTL
+   ;
+   @       IN      NS      solok.xxxx.com.
+   @       IN      A       10.84.1.4       ; IP address of Solok
+   www     IN      CNAME   solok.xxxx.com.
+   ' > /etc/bind/jarkom/solok.xxxx.com
+   ```
+
+2. **Mendaftarkan Zona di `named.conf.local`**
+   Setelah membuat file konfigurasi zona untuk domain Solok, tambahkan zona tersebut ke file **`named.conf.local`** pada server DNS Master.
+
+   ```bash
+   echo 'zone "solok.xxxx.com" {
+       type master;
+       notify yes;
+       file "/etc/bind/jarkom/solok.xxxx.com";
+   };' >> /etc/bind/named.conf.local
+   ```
+
+3. **Restart Layanan Bind9**
+   Setelah menambahkan konfigurasi di atas, layanan **Bind9** perlu direstart agar perubahan dapat diterapkan.
+
+   ```bash
+   service bind9 restart
+   ```
+
+ Konfigurasi Virtual Host Nginx di Server Solok
+
+Setelah domain dan alias berhasil dikonfigurasi di server DNS, langkah selanjutnya adalah memastikan Nginx di Solok dikonfigurasi untuk merespons permintaan melalui domain **solok.xxxx.com** dan **www.solok.xxxx.com**.
+
+1. **Modifikasi Konfigurasi Nginx untuk Domain Solok**
+
+   Tambahkan konfigurasi virtual host di file **`/etc/nginx/sites-available/solok.xxxx.com`** untuk domain baru yang akan diarahkan ke IP server Solok.
+
+   **Script Konfigurasi Nginx:**
+   ```bash
+   server {
+       listen 80;
+       server_name solok.xxxx.com www.solok.xxxx.com;
+
+       root /var/www/html;
+       index index.php index.html index.htm;
+
+       location / {
+           try_files $uri $uri/ =404;
+       }
+
+       error_page 404 /404.html;
+       location = /404.html {
+           internal;
+       }
+
+       location ~ \.php$ {
+           include snippets/fastcgi-php.conf;
+           fastcgi_pass unix:/var/run/php/php7.4-fpm.sock;
+       }
+
+       location ~ /\.ht {
+           deny all;
+       }
+   }
+   ```
+
+2. **Aktifkan Virtual Host dan Restart Nginx**
+
+   Setelah konfigurasi ditambahkan, aktifkan konfigurasi virtual host dan restart Nginx untuk menerapkan perubahan.
+
+   ```bash
+   ln -s /etc/nginx/sites-available/solok.xxxx.com /etc/nginx/sites-enabled/
+   service nginx restart
+   ```
+
+ Pengujian
+
+1. **Pengujian DNS Resolusi**
+   Uji resolusi domain **solok.xxxx.com** dan **www.solok.xxxx.com** dengan perintah **`ping`** atau **`nslookup`** di client untuk memastikan domain sudah dapat diakses dan diarahkan ke IP server Solok:
+
+   ```bash
+   ping solok.xxxx.com
+   ping www.solok.xxxx.com
+   ```
+
+2. **Pengujian Web Server**
+   Setelah DNS resolusi berhasil, akses **solok.xxxx.com** melalui browser atau menggunakan perintah **curl**:
+
+   ```bash
+   curl http://solok.xxxx.com
+   curl http://www.solok.xxxx.com
+   ```
+
+   Jika berhasil, maka halaman web dari server Solok (Nginx) akan ditampilkan.
+
 
 
