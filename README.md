@@ -736,5 +736,109 @@ lynx 10.84.1.4
 
 
 
+### Soal 14
+Selama melakukan penjarahan mereka melihat bagaimana web server luar negeri, hal ini membuat mereka iri, dengki, sirik dan ingin flexing sehingga meminta agar web server dan load balancer nya diubah menjadi nginx.
+
+ 1. **Instalasi Nginx sebagai Web Server pada Kotalingga, Bedahulu, dan Tanjungkulai**
+
+Setiap web server akan menggunakan Nginx sebagai pengganti Apache untuk melayani konten statis dan dinamis. Konfigurasi Nginx perlu disesuaikan agar mendukung situs-situs yang akan dilayani, dan juga mempersiapkan worker untuk load balancer.
+
+ **Script Instalasi Nginx pada Kotalingga, Bedahulu, dan Tanjungkulai**
+```bash
+apt update
+apt install nginx -y
+
+
+mkdir -p /var/www/html
+
+
+rm /etc/nginx/sites-enabled/default
+
+echo '
+server {
+    listen 80;
+    server_name pasopati.it42.com www.pasopati.it42.com;
+
+    root /var/www/html;
+    index index.php index.html;
+
+    location / {
+        try_files $uri $uri/ =404;
+    }
+
+    location ~ \.php$ {
+        include snippets/fastcgi-php.conf;
+        fastcgi_pass unix:/var/run/php/php7.0-fpm.sock;
+    }
+}
+' > /etc/nginx/sites-available/pasopati.it42.com
+
+
+ln -s /etc/nginx/sites-available/pasopati.it42.com /etc/nginx/sites-enabled/
+
+
+service nginx restart
+
+
+wget --no-check-certificate 'https://docs.google.com/uc?export=download&id=1Sqf0TIiybYyUp5nyab4twy9svkgq8bi7' -O lb.zip
+
+unzip -o lb.zip -d lb
+rm /var/www/html/index.html
+cp lb/worker/index.php /var/www/html/index.php
+```
+
+ 2. **Konfigurasi Nginx sebagai Load Balancer pada Solok**
+
+Solok akan berperan sebagai load balancer yang mendistribusikan trafik ke tiga worker: Kotalingga, Bedahulu, dan Tanjungkulai. Nginx akan dikonfigurasi menggunakan module `proxy_pass` untuk melakukan load balancing dengan algoritma round-robin.
+
+ **Script Konfigurasi Load Balancer pada Solok**
+```bash
+apt update
+apt install nginx -y
+
+
+rm /etc/nginx/sites-enabled/default
+
+echo '
+upstream mycluster {
+    server 10.84.1.4;
+    server 10.84.2.4;
+    server 10.84.2.5;
+}
+
+server {
+    listen 80;
+
+    location / {
+        proxy_pass http://mycluster;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+' > /etc/nginx/sites-available/load_balancer
+
+
+ln -s /etc/nginx/sites-available/load_balancer /etc/nginx/sites-enabled/
+
+
+service nginx restart
+```
+
+ 3. **Pengujian Koneksi dan Load Balancer**
+
+Setelah konfigurasi selesai, pengujian dilakukan dari sisi client untuk memastikan bahwa load balancer berjalan dengan baik dan membagi trafik secara merata ke semua worker. Dengan menggunakan `lynx`, kita bisa mengakses situs dari client dan melihat distribusi trafik antar server.
+
+ **Uji Koneksi Client**
+```bash
+lynx 10.84.1.4  # Akses melalui Load Balancer
+```
+
+Dengan menggunakan Nginx, sistem akan lebih efisien dalam menangani trafik yang padat, terutama dengan algoritma load balancing yang terintegrasi. Ini juga meningkatkan kemampuan untuk menangani beban tinggi dengan performa yang lebih stabil dibandingkan Apache.
+
+
+
+
 
 
