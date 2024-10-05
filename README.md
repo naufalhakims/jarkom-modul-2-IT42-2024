@@ -1150,3 +1150,85 @@ Dengan demikian, dua port yang akan digunakan adalah **31416** dan **4697**.
 Jika berhasil, halaman web akan ditampilkan melalui kedua port tersebut, dan akses melalui port lain selain **31416** dan **4697** akan ditolak.
 
 
+
+### Soal 18
+Apa bila ada yang mencoba mengakses IP solok akan secara otomatis dialihkan ke www.solok.xxxx.com.
+
+
+ Konfigurasi Nginx untuk Redirect
+
+1. **Langkah Pertama: Dapatkan IP Server Solok**
+   Sebelum membuat aturan redirect, pastikan kita mengetahui IP publik atau internal server Solok. Misalkan IP server Solok adalah **10.84.1.4**.
+
+2. **Script Konfigurasi Nginx untuk Redirect IP ke Domain**
+   
+   Tambahkan server block khusus untuk mengatur redirect ketika seseorang mencoba mengakses IP langsung:
+   
+   ```bash
+   server {
+       listen 80;
+       server_name 10.84.1.4;
+
+       return 301 http://www.solok.xxx.com$request_uri;
+   }
+   ```
+
+   Penjelasan:
+   - **listen 80**: Nginx akan mendengarkan pada port 80 untuk permintaan yang datang ke alamat IP.
+   - **server_name 10.84.1.4**: Konfigurasi ini akan memicu redirect jika ada yang mencoba mengakses IP **10.84.1.4**.
+   - **return 301 http://www.solok.xxx.com$request_uri**: Mengarahkan seluruh permintaan ke IP langsung menuju **www.solok.xxx.com** menggunakan kode status HTTP **301 Moved Permanently**. Variabel **$request_uri** memastikan bahwa path dan query string tetap diteruskan dalam redirect.
+
+3. **Konfigurasi Nginx untuk Domain www.solok.xxx.com**
+
+   Pastikan virtual host untuk domain **www.solok.xxx.com** juga telah dikonfigurasi dengan benar seperti berikut:
+
+   ```bash
+   server {
+       listen 80;
+       server_name www.solok.xxx.com solok.xxx.com;
+
+       root /var/www/html;
+       index index.php index.html index.htm;
+
+       location / {
+           try_files $uri $uri/ =404;
+       }
+
+       error_page 404 /404.html;
+       location = /404.html {
+           internal;
+       }
+
+       location ~ \.php$ {
+           include snippets/fastcgi-php.conf;
+           fastcgi_pass unix:/var/run/php/php7.4-fpm.sock;
+       }
+
+       location ~ /\.ht {
+           deny all;
+       }
+   }
+   ```
+
+4. **Restart Nginx**
+   
+   Setelah melakukan perubahan pada konfigurasi, jangan lupa untuk me-restart layanan Nginx agar perubahan ini aktif.
+
+   ```bash
+   service nginx restart
+   ```
+
+ Pengujian Redirect
+
+1. **Uji Akses IP Langsung**
+   Coba akses langsung ke IP **10.84.1.4** melalui perintah:
+   ```bash
+   curl http://10.84.1.4
+   ```
+
+   Jika konfigurasi berjalan dengan baik, permintaan tersebut akan secara otomatis dialihkan ke **www.solok.xxx.com**.
+
+2. **Uji Akses Domain**
+   Uji juga akses ke domain **www.solok.xxx.com** untuk memastikan bahwa domain berfungsi normal tanpa ada masalah.
+
+
