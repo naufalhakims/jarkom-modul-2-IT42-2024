@@ -1232,3 +1232,71 @@ Apa bila ada yang mencoba mengakses IP solok akan secara otomatis dialihkan ke w
    Uji juga akses ke domain **www.solok.xxx.com** untuk memastikan bahwa domain berfungsi normal tanpa ada masalah.
 
 
+
+### Soal 19
+Karena probset sudah kehabisan ide masuk ke salah satu worker buatkan akses direktori listing yang mengarah ke resource worker2.
+
+ Langkah-Langkah Konfigurasi
+
+1. **Konfigurasi Nginx pada Worker1 untuk Mengarahkan ke Worker2**
+   
+   Pastikan Nginx sudah terpasang dan berjalan di Worker1. Selanjutnya, kita akan menambahkan konfigurasi baru di **Worker1** untuk mengizinkan akses ke resource di **Worker2**.
+
+2. **Buat Server Block di Nginx untuk Direktori Listing**
+
+   Tambahkan konfigurasi berikut di file Nginx pada **Worker1**, misalnya di **/etc/nginx/sites-available/default**:
+
+   ```bash
+   server {
+       listen 80;
+       server_name worker1.xxx.com;
+
+       location /worker2-resources/ {
+           proxy_pass http://worker2.xxx.com/resources/;
+           autoindex on;
+           autoindex_exact_size off;
+           autoindex_format html;
+           autoindex_localtime on;
+       }
+
+       location / {
+           root /var/www/html;
+           index index.php index.html index.htm;
+       }
+   }
+   ```
+
+   Penjelasan konfigurasi:
+   - **proxy_pass http://worker2.xxx.com/resources/**: Mengarahkan semua permintaan ke **Worker2** di direktori **/resources/**.
+   - **autoindex on**: Mengaktifkan fitur directory listing untuk menampilkan isi direktori **/resources/** pada **Worker2**.
+   - **autoindex_exact_size off**: Menampilkan ukuran file dalam format yang lebih mudah dibaca (misalnya, KB atau MB).
+   - **autoindex_format html**: Menampilkan hasil listing dalam format HTML yang ramah pengguna.
+   - **autoindex_localtime on**: Mengaktifkan penggunaan waktu lokal untuk menampilkan timestamp file.
+
+3. **Restart Nginx di Worker1**
+
+   Setelah melakukan konfigurasi, pastikan untuk me-restart layanan Nginx agar perubahan ini aktif:
+
+   ```bash
+   service nginx restart
+   ```
+
+4. **Konfigurasi di Worker2 untuk Mengizinkan Akses ke Resource**
+
+   Di **Worker2**, pastikan direktori **/resources/** sudah ada dan memiliki file yang bisa diakses. Pastikan juga bahwa **Worker2** mengizinkan akses dari **Worker1** melalui pengaturan firewall atau pengaturan lainnya.
+
+5. **Pengujian Akses Direktori Listing**
+
+   Setelah konfigurasi selesai, kita dapat menguji akses dari browser atau menggunakan perintah **curl** untuk mengakses direktori listing:
+
+   ```bash
+   curl http://worker1.xxx.com/worker2-resources/
+   ```
+
+   Atau bisa menggunakan browser dengan membuka URL:
+   ```
+   http://worker1.xxx.com/worker2-resources/
+   ```
+
+   Jika konfigurasi berhasil, kita akan melihat daftar file dan direktori yang ada di direktori **/resources/** pada **Worker2**.
+
