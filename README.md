@@ -1043,4 +1043,110 @@ Setelah domain dan alias berhasil dikonfigurasi di server DNS, langkah selanjutn
    Jika berhasil, maka halaman web dari server Solok (Nginx) akan ditampilkan.
 
 
+### Soal 17
+Agar aman, buatlah konfigurasi agar solok.xxx.com hanya dapat diakses melalui port sebesar π x 10^4 = (phi nya desimal) dan 2000 + 2000 log 10 (10) +700 - π = ?.
+
+
+#### Perhitungan Port
+1. **Port pertama**: 
+   \[
+   \pi \times 10^4 = 3.141592653589793 \times 10000 = 31415.92653589793
+   \]
+   Karena port harus berupa bilangan bulat, maka dibulatkan menjadi **31416**.
+
+2. **Port kedua**: 
+   \[
+   2000 + 2000 \times \log_{10}(10) + 700 - \pi = 2000 + 2000 \times 1 + 700 - 3.141592653589793
+   \]
+   \[
+   = 2000 + 2000 + 700 - 3.141592653589793 = 4696.85840734641
+   \]
+   Setelah dibulatkan, port kedua menjadi **4697**.
+
+Dengan demikian, dua port yang akan digunakan adalah **31416** dan **4697**.
+
+#### Konfigurasi Nginx untuk Port Khusus
+
+1. **Konfigurasi Virtual Host untuk Port 31416 dan 4697**
+
+   Kita akan memodifikasi konfigurasi Nginx di server Solok agar domain **solok.xxx.com** hanya dapat diakses melalui port **31416** dan **4697**. Konfigurasi dilakukan dengan menambahkan dua virtual host, satu untuk masing-masing port.
+
+   **Script Konfigurasi Nginx:**
+   ```bash
+   server {
+       listen 31416;
+       server_name solok.xxx.com www.solok.xxx.com;
+
+       root /var/www/html;
+       index index.php index.html index.htm;
+
+       location / {
+           try_files $uri $uri/ =404;
+       }
+
+       error_page 404 /404.html;
+       location = /404.html {
+           internal;
+       }
+
+       location ~ \.php$ {
+           include snippets/fastcgi-php.conf;
+           fastcgi_pass unix:/var/run/php/php7.4-fpm.sock;
+       }
+
+       location ~ /\.ht {
+           deny all;
+       }
+   }
+
+   server {
+       listen 4697;
+       server_name solok.xxx.com www.solok.xxx.com;
+
+       root /var/www/html;
+       index index.php index.html index.htm;
+
+       location / {
+           try_files $uri $uri/ =404;
+       }
+
+       error_page 404 /404.html;
+       location = /404.html {
+           internal;
+       }
+
+       location ~ \.php$ {
+           include snippets/fastcgi-php.conf;
+           fastcgi_pass unix:/var/run/php/php7.4-fpm.sock;
+       }
+
+       location ~ /\.ht {
+           deny all;
+       }
+   }
+   ```
+
+2. **Restart Nginx**
+   Setelah menambahkan konfigurasi untuk kedua port khusus, restart layanan Nginx untuk menerapkan perubahan:
+
+   ```bash
+   service nginx restart
+   ```
+
+#### Pengujian Akses Melalui Port Khusus
+
+1. **Uji Akses Port 31416**
+   Setelah konfigurasi Nginx selesai, uji akses domain **solok.xxx.com** melalui port **31416** dengan perintah curl:
+   ```bash
+   curl http://solok.xxx.com:31416
+   ```
+
+2. **Uji Akses Port 4697**
+   Lakukan hal yang sama untuk port **4697**:
+   ```bash
+   curl http://solok.xxx.com:4697
+   ```
+
+Jika berhasil, halaman web akan ditampilkan melalui kedua port tersebut, dan akses melalui port lain selain **31416** dan **4697** akan ditolak.
+
 
